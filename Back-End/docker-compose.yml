@@ -1,0 +1,104 @@
+﻿version: '3.8'
+
+services:
+  apigateway:
+    image: spacestalinnn/apigateway:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_URLS=http://+:80    
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - user
+      - lead
+      - college
+
+
+  rabbitmq-app:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+  user:
+    image: spacestalinnn/user-service:latest
+    build:
+      context: UserService 
+      dockerfile: src/API/Dockerfile 
+    environment:
+      - RABBITMQ_HOST=rabbitmq-app
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - ASPNETCORE_URLS=http://+:80  
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=UserServiceDB;User ID=sa_swd;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - Jwt__SecretKey=u8Qw1v9k2l5s8x/AeD3G6j9L2p4s7v0yB1e4h7k0n3r6u9z/C5F8J2M5Q8T1W4Z7
+      - Jwt__Issuer=BE_UserService
+      - Jwt__Audience=FE
+      - Jwt__AccessTokenExpirationMinutes=60
+      - Jwt__RefreshTokenExpirationDays=7
+      - Email__From=251qbao@gmail.com
+      - Email__SmtpHost=smtp.gmail.com
+      - Email__SmtpPort=465
+      - Email__Username=251qbao@gmail.com
+      - Email__Password=bydi vpbd hyiz fjtq
+      - Email__ConfirmationBaseUrl=http://localhost:5002
+
+  lead:
+    image: spacestalinnn/lead-service:latest
+    build:
+      context: ./LeadManagementService
+      dockerfile: src/API/Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq-app
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=LeadServiceDB;User ID=sa_swd;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=true;
+  
+  application:
+    image: spacestalinnn/application-service:latest
+    build:
+      context: ./ApplicationService
+      dockerfile: src/API/Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq-app
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=ApplicationServiceDB;User ID=sa_swd;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=true;
+ 
+  college:
+    image: spacestalinnn/collegeinfo-service:latest
+    build:
+      context: ./CollegeInfoService
+      dockerfile: src/API/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=CollegeInfoServiceDB;User ID=sa_swd;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=true;
+
+  notification:
+    image: spacestalinnn/notification-service:latest
+    build:
+      context: ./NotificationService
+      dockerfile: src/API/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - RABBITMQ_HOST=rabbitmq-app
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=NotificationServiceDB;User ID=sa_swd;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      
+  dashboard:
+    image: spacestalinnn/dashboard-service:latest
+    build:
+      context: ./DashboardService
+      dockerfile: src/API/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - Services__BookingService__BaseUrl=http://lead:80
+      - Services__ApplicationService__BaseUrl=http://application:80
