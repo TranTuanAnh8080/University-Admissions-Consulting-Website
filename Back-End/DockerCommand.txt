@@ -1,0 +1,23 @@
+
+docker build -t spacestalinnn/user-service -f src/API/Dockerfile .
+docker build -t spacestalinnn/apigateway .
+docker build -t spacestalinnn/lead-service -f src/API/Dockerfile .
+docker build -t spacestalinnn/collegeinfo-service -f src/API/Dockerfile .
+
+docker build -t spacestalinnn/chatbot-service -f src/API/Dockerfile .
+docker build -t spacestalinnn/knowledgebase-service -f src/API/Dockerfile .
+docker build -t spacestalinnn/application-service -f src/API/Dockerfile .
+
+
+# Pull all your Docker images from Docker Hub
+docker pull spacestalinnn/user-service
+docker pull spacestalinnn/apigateway
+docker pull spacestalinnn/lead-service
+docker pull spacestalinnn/collegeinfo-service
+
+docker-compose up -d
+
+
+docker pull spacestalinnn/chatbot-service
+docker pull spacestalinnn/knowledgebase-service
+docker pull spacestalinnn/application-service
